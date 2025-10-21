@@ -9,6 +9,7 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Middleware\HandleCors;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,8 +25,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withProviders([
         AuthServiceProvider::class,
         BroadcastServiceProvider::class,
+        App\Providers\RouteServiceProvider::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->append(HandleCors::class);
         $middleware->append(SetFamilyContext::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
@@ -37,28 +40,36 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($e instanceof ValidationException) {
                 return ApiResponse::error(
                     $e->errors(),
-                    Response::HTTP_UNPROCESSABLE_ENTITY
+                    Response::HTTP_UNPROCESSABLE_ENTITY,
+                    'Validation Error',
+                    'https://httpstatuses.com/422'
                 );
             }
 
             if ($e instanceof AuthenticationException) {
                 return ApiResponse::error(
                     ['message' => [$e->getMessage() ?: 'Unauthenticated.']],
-                    Response::HTTP_UNAUTHORIZED
+                    Response::HTTP_UNAUTHORIZED,
+                    'Unauthorized',
+                    'https://httpstatuses.com/401'
                 );
             }
 
             if ($e instanceof AuthorizationException) {
                 return ApiResponse::error(
                     ['message' => [$e->getMessage() ?: 'Forbidden.']],
-                    Response::HTTP_FORBIDDEN
+                    Response::HTTP_FORBIDDEN,
+                    'Forbidden',
+                    'https://httpstatuses.com/403'
                 );
             }
 
             if ($e instanceof HttpExceptionInterface) {
                 return ApiResponse::error(
                     ['message' => [$e->getMessage() ?: Response::$statusTexts[$e->getStatusCode()] ?? 'Error']],
-                    $e->getStatusCode()
+                    $e->getStatusCode(),
+                    Response::$statusTexts[$e->getStatusCode()] ?? 'Error',
+                    "https://httpstatuses.com/{$e->getStatusCode()}"
                 );
             }
 
@@ -66,7 +77,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
             return ApiResponse::error(
                 ['message' => ['Internal server error.']],
-                Response::HTTP_INTERNAL_SERVER_ERROR
+                Response::HTTP_INTERNAL_SERVER_ERROR,
+                'Internal Server Error',
+                'https://httpstatuses.com/500'
             );
         });
     })->create();

@@ -6,20 +6,23 @@ Route::middleware(['api'])
     ->group(function (): void {
         // Authentication
         Route::prefix('auth')->name('api.auth.')->group(function (): void {
-            Route::post('register', [\App\Http\Controllers\Api\Auth\RegisterController::class, '__invoke'])
-                ->name('register');
-            Route::post('login', [\App\Http\Controllers\Api\Auth\LoginController::class, '__invoke'])
-                ->name('login');
+            Route::middleware('throttle:auth')->group(function (): void {
+                Route::post('register', [\App\Http\Controllers\Api\Auth\RegisterController::class, '__invoke'])
+                    ->name('register');
+                Route::post('login', [\App\Http\Controllers\Api\Auth\LoginController::class, '__invoke'])
+                    ->name('login');
+                Route::get('social/{provider}/redirect', [\App\Http\Controllers\Api\Auth\SocialRedirectController::class, '__invoke'])
+                    ->name('social.redirect');
+                Route::get('social/{provider}/callback', [\App\Http\Controllers\Api\Auth\SocialCallbackController::class, '__invoke'])
+                    ->name('social.callback');
+            });
+
             Route::post('logout', [\App\Http\Controllers\Api\Auth\LogoutController::class, '__invoke'])
                 ->middleware('auth:sanctum')
                 ->name('logout');
             Route::get('me', [\App\Http\Controllers\Api\Auth\MeController::class, '__invoke'])
                 ->middleware('auth:sanctum')
                 ->name('me');
-            Route::get('social/{provider}/redirect', [\App\Http\Controllers\Api\Auth\SocialRedirectController::class, '__invoke'])
-                ->name('social.redirect');
-            Route::get('social/{provider}/callback', [\App\Http\Controllers\Api\Auth\SocialCallbackController::class, '__invoke'])
-                ->name('social.callback');
         });
 
         Route::middleware('auth:sanctum')->group(function (): void {
@@ -72,6 +75,7 @@ Route::middleware(['api'])
 
             // Invitations
             Route::post('invitations', [\App\Http\Controllers\Api\Invitations\InvitationStoreController::class, '__invoke'])
+                ->middleware('throttle:invites')
                 ->name('api.invitations.store');
         });
 

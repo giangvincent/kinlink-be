@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Enums\FamilyRole;
 use App\Models\AuditLog;
 use App\Models\Event;
 use App\Models\Export;
@@ -11,6 +12,7 @@ use App\Models\Person;
 use App\Models\Post;
 use App\Models\Relationship;
 use App\Models\Subscription;
+use App\Models\User;
 use App\Policies\AuditLogPolicy;
 use App\Policies\EventPolicy;
 use App\Policies\ExportPolicy;
@@ -21,6 +23,7 @@ use App\Policies\PostPolicy;
 use App\Policies\RelationshipPolicy;
 use App\Policies\SubscriptionPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Gate;
 
 class AuthServiceProvider extends ServiceProvider
 {
@@ -38,6 +41,12 @@ class AuthServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Policies are automatically registered via $policies.
+        Gate::define('family-role', function ($user, Family $family, FamilyRole|string $role) {
+            $requiredRole = $role instanceof FamilyRole ? $role : FamilyRole::from($role);
+
+            return $user->hasFamilyRole($requiredRole, $family);
+        });
+
+        Gate::define('impersonate-users', fn ($user) => (bool) $user->is_admin);
     }
 }

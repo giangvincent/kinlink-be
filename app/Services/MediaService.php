@@ -58,7 +58,7 @@ class MediaService
      */
     public function attachFromUrl(
         string|\Spatie\MediaLibrary\HasMedia $model,
-        int $modelId,
+        ?int $modelId,
         string $collection,
         string $fileUrl,
         array $options = []

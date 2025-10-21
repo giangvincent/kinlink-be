@@ -25,6 +25,7 @@ class DemoSeeder extends Seeder
                 'password' => bcrypt('password-demo'),
                 'locale' => 'en',
                 'time_zone' => 'UTC',
+                'is_admin' => true,
             ]
         );
 

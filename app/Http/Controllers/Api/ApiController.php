@@ -42,9 +42,15 @@ abstract class ApiController extends BaseController
         return ApiResponse::success(null, $meta, Response::HTTP_NO_CONTENT);
     }
 
-    protected function fail(array $errors, int $status = Response::HTTP_BAD_REQUEST, array $meta = [], mixed $data = null)
+    protected function fail(
+        array $errors,
+        int $status = Response::HTTP_BAD_REQUEST,
+        ?string $title = null,
+        ?string $type = null,
+        ?string $detail = null
+    )
     {
-        return ApiResponse::error($errors, $status, $meta, $data);
+        return ApiResponse::error($errors, $status, $title, $type, $detail);
     }
 
     protected function normalizeResource(mixed $data): array
