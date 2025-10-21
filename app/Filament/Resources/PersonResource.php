@@ -12,7 +12,10 @@ use Filament\Forms;
 use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
 use Filament\Tables;
-use Filament\Tables\Actions\Action;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction as FilamentEditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -65,13 +68,13 @@ class PersonResource extends Resource
                 SelectFilter::make('gender')->options(collect(PersonGender::cases())->mapWithKeys(fn ($case) => [$case->value => ucfirst($case->value)])->all()),
                 SelectFilter::make('visibility')->options(collect(PersonVisibility::cases())->mapWithKeys(fn ($case) => [$case->value => ucfirst($case->value)])->all()),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                ViewAction::make(),
+                FilamentEditAction::make(),
                 Action::make('mergeDuplicates')
                     ->label('Merge Duplicate')
                     ->icon('heroicon-o-arrow-path')
-                    ->form([
+                    ->schema([
                         Forms\Components\Select::make('target_person_id')
                             ->label('Target Person')
                             ->required()
@@ -88,7 +91,7 @@ class PersonResource extends Resource
                 Action::make('reparentChild')
                     ->label('Reparent Child')
                     ->icon('heroicon-o-arrow-uturn-right')
-                    ->form([
+                    ->schema([
                         Forms\Components\Select::make('child_id')
                             ->label('Child')
                             ->required()
@@ -116,8 +119,8 @@ class PersonResource extends Resource
                         );
                     }),
             ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                DeleteBulkAction::make(),
             ]);
     }
 

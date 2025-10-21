@@ -11,6 +11,9 @@ use Filament\Schemas\Schema;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Actions\ViewAction;
+use Filament\Actions\EditAction as FilamentEditAction;
+use Filament\Actions\DeleteBulkAction;
 
 class FamilyResource extends Resource
 {
@@ -82,12 +85,12 @@ class FamilyResource extends Resource
                 Tables\Filters\SelectFilter::make('billing_plan')
                     ->options(collect(BillingPlan::cases())->mapWithKeys(fn ($plan) => [$plan->value => ucfirst($plan->value)])->all()),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                ViewAction::make(),
+                FilamentEditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                DeleteBulkAction::make(),
             ]);
     }
 

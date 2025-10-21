@@ -14,7 +14,14 @@ class FamilyOverviewStats extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        $family = $this->getRecord();
+        $family = null;
+
+        // Filament resource view pages pass the record id as the 'record' route parameter.
+        $recordId = request()->route('record') ?? null;
+
+        if ($recordId) {
+            $family = Family::find($recordId);
+        }
 
         if (! $family instanceof Family) {
             return [

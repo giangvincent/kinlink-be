@@ -8,9 +8,14 @@ use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
-use Filament\Tables\Actions\Action;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction as FilamentEditAction;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Gate;
 
 class UserResource extends Resource
 {
@@ -47,24 +52,24 @@ class UserResource extends Resource
                 Tables\Columns\IconColumn::make('is_admin')->boolean()->label('Admin'),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                FilamentEditAction::make(),
                 Action::make('impersonate')
                     ->label('Impersonate')
                     ->icon('heroicon-o-user-circle')
                     ->color('warning')
                     ->requiresConfirmation()
-                    ->visible(fn () => auth()->user()?->can('impersonate-users'))
-                    ->hidden(fn (User $record) => $record->is(auth()->user()))
+                    ->visible(fn () => Gate::allows('impersonate-users'))
+                    ->hidden(fn (User $record) => $record->is(Auth::user()))
                     ->action(function (User $record) {
-                        session()->put('impersonator_id', auth()->id());
-                        auth()->login($record);
+                        Session::put('impersonator_id', Auth::id());
+                        Auth::login($record);
 
                         return Redirect::to('/');
                     }),
             ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                DeleteBulkAction::make(),
             ]);
     }
 

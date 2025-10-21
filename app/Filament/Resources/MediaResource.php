@@ -11,6 +11,9 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\ViewAction;
+use Filament\Actions\DeleteAction;
 
 class MediaResource extends Resource
 {
@@ -42,12 +45,12 @@ class MediaResource extends Resource
                 TextColumn::make('size')->label('Size (KB)')->formatStateUsing(fn ($state) => number_format($state / 1024, 2)),
                 TextColumn::make('created_at')->dateTime()->sortable(),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                ->recordActions([
+                    ViewAction::make(),
+                    DeleteAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                DeleteBulkAction::make(),
             ]);
     }
 
