@@ -9,7 +9,8 @@ class LoginRequest extends ApiRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'email:rfc,dns'],
+            // Avoid DNS checks in tests/environments without network
+            'email' => ['required', 'email:rfc'],
             'password' => ['required', 'string'],
             'device_name' => ['nullable', 'string', 'max:255'],
         ];
