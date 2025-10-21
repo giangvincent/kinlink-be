@@ -15,6 +15,7 @@ class PostResource extends BaseJsonResource
             'body' => $this->resource->body,
             'visibility' => $this->resource->visibility?->value ?? $this->resource->visibility,
             'pinned' => (bool) $this->resource->pinned,
+            'author' => $this->whenLoaded('author', fn () => UserResource::make($this->resource->author)->resolve()),
             'created_at' => $this->resource->created_at?->toIso8601String(),
             'updated_at' => $this->resource->updated_at?->toIso8601String(),
         ];

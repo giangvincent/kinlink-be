@@ -63,7 +63,7 @@ class BillingService
                             'provider' => SubscriptionProvider::STRIPE,
                         ],
                         [
-                            'status' => 'active',
+                            'status' => SubscriptionStatus::ACTIVE,
                             'current_period_end' => now()->addMonth(),
                             'seats' => $seats,
                             'storage_quota_mb' => $storage,

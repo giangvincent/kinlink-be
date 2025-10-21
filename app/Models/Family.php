@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BillingPlan;
+use App\Models\Export;
 use App\Models\Pivots\FamilyUser;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -77,5 +78,10 @@ class Family extends Model
     public function auditLogs(): HasMany
     {
         return $this->hasMany(AuditLog::class);
+    }
+
+    public function exports(): HasMany
+    {
+        return $this->hasMany(Export::class);
     }
 }

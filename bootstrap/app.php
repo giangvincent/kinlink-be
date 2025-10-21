@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\SetFamilyContext;
 use App\Providers\AuthServiceProvider;
+use App\Providers\BroadcastServiceProvider;
 use App\Support\ApiResponse;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
@@ -12,7 +13,6 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
-use Throwable;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -23,12 +23,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withProviders([
         AuthServiceProvider::class,
+        BroadcastServiceProvider::class,
     ])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->append(SetFamilyContext::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (Throwable $e, Request $request) {
+        $exceptions->render(function (\Throwable $e, Request $request) {
             if (! $request->expectsJson()) {
                 return null;
             }

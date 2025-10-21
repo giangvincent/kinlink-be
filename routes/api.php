@@ -2,8 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::prefix('api')
-    ->middleware(['api'])
+Route::middleware(['api'])
     ->group(function (): void {
         // Authentication
         Route::prefix('auth')->name('api.auth.')->group(function (): void {
@@ -89,7 +88,7 @@ Route::prefix('api')
                 ->name('api.media.attach');
             Route::get('media/{modelType}/{model}', [\App\Http\Controllers\Api\Media\MediaIndexController::class, '__invoke'])
                 ->name('api.media.index');
-            Route::delete('media/{media:uuid}', [\App\Http\Controllers\Api\Media\MediaDestroyController::class, '__invoke'])
+            Route::delete('media/{uuid}', [\App\Http\Controllers\Api\Media\MediaDestroyController::class, '__invoke'])
                 ->name('api.media.destroy');
 
             // Search
@@ -113,6 +112,8 @@ Route::prefix('api')
             // Exports
             Route::post('exports/family-book', [\App\Http\Controllers\Api\Exports\FamilyBookExportController::class, '__invoke'])
                 ->name('api.exports.family-book');
+            Route::get('exports/{export}', [\App\Http\Controllers\Api\Exports\ExportShowController::class, '__invoke'])
+                ->name('api.exports.show');
         });
 
         Route::post('webhooks/stripe', [\App\Http\Controllers\Api\Billing\StripeWebhookController::class, '__invoke'])

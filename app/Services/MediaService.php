@@ -57,18 +57,22 @@ class MediaService
      * @param  array{disk?:string,custom_properties?:array}  $options
      */
     public function attachFromUrl(
-        string $modelType,
+        string|\Spatie\MediaLibrary\HasMedia $model,
         int $modelId,
         string $collection,
         string $fileUrl,
         array $options = []
     ): Media {
-        /** @var class-string<\Spatie\MediaLibrary\HasMedia> $modelType */
-        $model = $modelType::query()->findOrFail($modelId);
+        if (is_string($model)) {
+            /** @var class-string<\Spatie\MediaLibrary\HasMedia> $model */
+            $modelInstance = $model::query()->findOrFail($modelId);
+        } else {
+            $modelInstance = $model;
+        }
 
         $disk = $options['disk'] ?? config('filesystems.cloud', 's3');
 
-        $media = $model
+        $media = $modelInstance
             ->addMediaFromUrl($fileUrl)
             ->withCustomProperties($options['custom_properties'] ?? [])
             ->toMediaCollection($collection, $disk);

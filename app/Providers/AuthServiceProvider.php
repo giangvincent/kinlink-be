@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\AuditLog;
 use App\Models\Event;
+use App\Models\Export;
 use App\Models\Family;
 use App\Models\Invitation;
 use App\Models\Person;
@@ -12,6 +13,7 @@ use App\Models\Relationship;
 use App\Models\Subscription;
 use App\Policies\AuditLogPolicy;
 use App\Policies\EventPolicy;
+use App\Policies\ExportPolicy;
 use App\Policies\FamilyPolicy;
 use App\Policies\InvitationPolicy;
 use App\Policies\PersonPolicy;
@@ -31,6 +33,7 @@ class AuthServiceProvider extends ServiceProvider
         Invitation::class => InvitationPolicy::class,
         Subscription::class => SubscriptionPolicy::class,
         AuditLog::class => AuditLogPolicy::class,
+        Export::class => ExportPolicy::class,
     ];
 
     public function boot(): void

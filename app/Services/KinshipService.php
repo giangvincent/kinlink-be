@@ -3,18 +3,12 @@
 namespace App\Services;
 
 use App\Models\Person;
-use Illuminate\Database\DatabaseManager;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\DB;
+use App\Models\Relationship;
 
 class KinshipService
 {
-    public function __construct(private readonly DatabaseManager $db)
-    {
-    }
-
     /**
-     * Retrieve the relational path between two people using a recursive CTE.
+     * Retrieve the relational path between two people using an in-memory breadth-first search.
      *
      * @return array<int, array{person_id:int, via_relationship_id:int|null}>
      */
@@ -31,61 +25,61 @@ class KinshipService
 
         $familyId = $from->family_id;
 
-        $results = $this->db->select(<<<SQL
-            WITH RECURSIVE kinship_path AS (
-                SELECT
-                    r.person_id_a AS current_person_id,
-                    r.person_id_b AS related_person_id,
-                    r.id AS relationship_id,
-                    CAST(r.person_id_a AS CHAR(1024)) AS visited,
-                    1 AS depth,
-                    JSON_ARRAY(JSON_OBJECT('person_id', r.person_id_a, 'via_relationship_id', NULL),
-                               JSON_OBJECT('person_id', r.person_id_b, 'via_relationship_id', r.id)) AS path
-                FROM relationships r
-                WHERE r.family_id = :family_id
-                  AND r.person_id_a = :start_id
+        $relationships = Relationship::query()
+            ->where('family_id', $familyId)
+            ->get(['id', 'person_id_a', 'person_id_b']);
 
-                UNION ALL
+        $adjacency = [];
+        foreach ($relationships as $relationship) {
+            $adjacency[$relationship->person_id_a][] = [$relationship->person_id_b, $relationship->id];
+            $adjacency[$relationship->person_id_b][] = [$relationship->person_id_a, $relationship->id];
+        }
 
-                SELECT
-                    CASE WHEN kp.related_person_id = r.person_id_a THEN r.person_id_b ELSE r.person_id_a END AS current_person_id,
-                    CASE WHEN kp.related_person_id = r.person_id_a THEN r.person_id_a ELSE r.person_id_b END AS related_person_id,
-                    r.id AS relationship_id,
-                    CONCAT(kp.visited, ',', kp.related_person_id) AS visited,
-                    kp.depth + 1 AS depth,
-                    JSON_ARRAY_APPEND(
-                        kp.path,
-                        '$',
-                        JSON_OBJECT(
-                            'person_id', CASE WHEN kp.related_person_id = r.person_id_a THEN r.person_id_b ELSE r.person_id_a END,
-                            'via_relationship_id', r.id
-                        )
-                    ) AS path
-                FROM kinship_path kp
-                JOIN relationships r ON r.family_id = :family_id
-                    AND (r.person_id_a = kp.related_person_id OR r.person_id_b = kp.related_person_id)
-                WHERE FIND_IN_SET(CASE WHEN kp.related_person_id = r.person_id_a THEN r.person_id_b ELSE r.person_id_a END, kp.visited) = 0
-                  AND kp.depth < 8
-            )
-            SELECT kp.path
-            FROM kinship_path kp
-            WHERE JSON_EXTRACT(kp.path, '$[last].person_id') = :end_id
-            ORDER BY kp.depth ASC
-            LIMIT 1
-        SQL, [
-            'family_id' => $familyId,
-            'start_id' => $from->getKey(),
-            'end_id' => $to->getKey(),
-        ]);
+        $queue = new \SplQueue();
+        $queue->enqueue($from->getKey());
 
-        if (empty($results)) {
+        $visited = [
+            $from->getKey() => ['prev' => null, 'relationship_id' => null],
+        ];
+
+        while (! $queue->isEmpty()) {
+            $current = $queue->dequeue();
+
+            if ($current === $to->getKey()) {
+                break;
+            }
+
+            foreach ($adjacency[$current] ?? [] as [$neighbor, $relationshipId]) {
+                if (isset($visited[$neighbor])) {
+                    continue;
+                }
+
+                $visited[$neighbor] = [
+                    'prev' => $current,
+                    'relationship_id' => $relationshipId,
+                ];
+
+                $queue->enqueue($neighbor);
+            }
+        }
+
+        if (! isset($visited[$to->getKey()])) {
             return [];
         }
 
-        /** @var string $json */
-        $json = $results[0]->path ?? '[]';
+        $path = [];
+        $current = $to->getKey();
 
-        return json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        while ($current !== null) {
+            $path[] = [
+                'person_id' => $current,
+                'via_relationship_id' => $visited[$current]['relationship_id'] ?? null,
+            ];
+
+            $current = $visited[$current]['prev'] ?? null;
+        }
+
+        return array_reverse($path);
     }
 
     /**
