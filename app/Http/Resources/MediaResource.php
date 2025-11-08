@@ -25,6 +25,10 @@ class MediaResource extends BaseJsonResource
             'size' => $this->resource->size,
             'custom_properties' => $this->resource->custom_properties,
             'generated_conversions' => $this->resource->generated_conversions,
+            'original_url' => $this->resource->getFullUrl(),
+            'preview_url' => $this->resource->hasGeneratedConversion('thumb')
+                ? $this->resource->getFullUrl('thumb')
+                : null,
             'created_at' => $this->resource->created_at?->toIso8601String(),
             'updated_at' => $this->resource->updated_at?->toIso8601String(),
         ];

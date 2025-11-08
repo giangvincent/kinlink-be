@@ -21,6 +21,7 @@ class LoginController extends ApiController
         }
 
         $token = $user->createToken($request->input('device_name', 'api'))->plainTextToken;
+        $user->loadMissing('media');
 
         return $this->ok([
             'user' => (new UserResource($user))->toArray($request),

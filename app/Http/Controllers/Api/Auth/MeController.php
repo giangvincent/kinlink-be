@@ -11,7 +11,7 @@ class MeController extends ApiController
 {
     public function __invoke(Request $request)
     {
-        $user = $request->user()->load('families');
+        $user = $request->user()->load(['families', 'media']);
 
         return $this->ok([
             'user' => (new UserResource($user))->toArray($request),

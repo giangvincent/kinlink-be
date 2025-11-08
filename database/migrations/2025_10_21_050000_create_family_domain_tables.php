@@ -52,8 +52,11 @@ return new class extends Migration
             $table->enum('gender', PersonGender::values())->default(PersonGender::UNKNOWN->value);
             $table->date('birth_date')->nullable();
             $table->date('death_date')->nullable();
+            $table->boolean('is_deceased')->default(false);
             $table->enum('visibility', PersonVisibility::values())->default(PersonVisibility::FAMILY->value);
             $table->json('meta')->nullable();
+            $table->string('closest_relationship')->nullable();
+            $table->foreignId('closest_relative_id')->nullable()->constrained('people')->nullOnDelete();
             $table->timestamps();
 
             $table->index(['family_id', 'surname']);

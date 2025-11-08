@@ -47,6 +47,8 @@ class InvitationAcceptController extends ApiController
 
         $this->invitationService->acceptInvitation($invitation, $user);
 
+        $user->loadMissing('media');
+
         return $this->ok([
             'invitation' => (new InvitationResource($invitation))->toArray($request),
             'user' => (new UserResource($user))->toArray($request),

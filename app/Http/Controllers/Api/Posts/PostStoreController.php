@@ -29,7 +29,17 @@ class PostStoreController extends ApiController
             'pinned' => $request->boolean('pinned'),
         ]);
 
-        $post->load('author');
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments', []) as $file) {
+                if (! $file) {
+                    continue;
+                }
+
+                $post->addMedia($file)->toMediaCollection('attachments');
+            }
+        }
+
+        $post->load('author', 'media');
 
         event(new PostCreated($post));
 

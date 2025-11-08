@@ -11,13 +11,17 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements HasMedia
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens;
     use HasFactory;
+    use InteractsWithMedia;
     use HasRoles;
     use Notifiable;
 
@@ -28,6 +32,7 @@ class User extends Authenticatable
         'password',
         'locale',
         'time_zone',
+        'bio',
         'is_admin',
     ];
 
@@ -35,13 +40,6 @@ class User extends Authenticatable
         'password',
         'remember_token',
     ];
-
-    /**
-     * Cached family roles keyed by family id.
-     *
-     * @var array<int, FamilyRole|null>
-     */
-    protected array $familyRoleCache = [];
 
     protected function casts(): array
     {
@@ -78,21 +76,17 @@ class User extends Authenticatable
             return null;
         }
 
-        if (array_key_exists($familyId, $this->familyRoleCache)) {
-            return $this->familyRoleCache[$familyId];
-        }
-
         $family = $this->families()
             ->where('families.id', $familyId)
             ->first();
 
         if (! $family) {
-            return $this->familyRoleCache[$familyId] = null;
+            return null;
         }
 
         $role = $family->pivot->role;
 
-        return $this->familyRoleCache[$familyId] = $role instanceof FamilyRole
+        return $role instanceof FamilyRole
             ? $role
             : FamilyRole::from($role);
     }
@@ -120,5 +114,23 @@ class User extends Authenticatable
         }
 
         return app(FamilyContext::class)->currentFamilyId();
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this
+            ->addMediaCollection('avatar')
+            ->singleFile();
+    }
+
+    public function registerMediaConversions(Media $media = null): void
+    {
+        $this
+            ->addMediaConversion('thumb')
+            ->width(320)
+            ->height(320)
+            ->fit('cover', 320, 320)
+            ->performOnCollections('avatar')
+            ->nonQueued();
     }
 }

@@ -22,6 +22,8 @@ class PersonFactory extends Factory
         $middle = $this->faker->optional()->firstName();
         $surname = $this->faker->lastName();
 
+        $isDeceased = $this->faker->boolean(20);
+
         return [
             'family_id' => Family::factory(),
             'given_name' => $given,
@@ -30,6 +32,8 @@ class PersonFactory extends Factory
             'display_name' => trim(collect([$given, $middle, $surname])->filter()->implode(' ')),
             'gender' => $gender,
             'birth_date' => $this->faker->optional()->dateTimeBetween('-90 years', '-18 years'),
+            'death_date' => $isDeceased ? $this->faker->optional()->dateTimeBetween('-20 years', 'now') : null,
+            'is_deceased' => $isDeceased,
             'visibility' => $this->faker->randomElement(PersonVisibility::cases()),
             'meta' => [
                 'generation' => $this->faker->numberBetween(-3, 3),

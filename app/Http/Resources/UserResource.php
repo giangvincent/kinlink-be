@@ -8,6 +8,8 @@ class UserResource extends BaseJsonResource
 {
     public function toArray(Request $request): array
     {
+        $avatar = $this->resource->getFirstMedia('avatar');
+
         return [
             'id' => $this->resource->getKey(),
             'name' => $this->resource->name,
@@ -15,6 +17,8 @@ class UserResource extends BaseJsonResource
             'phone' => $this->resource->phone,
             'locale' => $this->resource->locale,
             'time_zone' => $this->resource->time_zone,
+            'bio' => $this->resource->bio,
+            'avatar' => $avatar ? MediaResource::make($avatar) : null,
             'email_verified_at' => $this->resource->email_verified_at?->toIso8601String(),
             'created_at' => $this->resource->created_at?->toIso8601String(),
             'updated_at' => $this->resource->updated_at?->toIso8601String(),

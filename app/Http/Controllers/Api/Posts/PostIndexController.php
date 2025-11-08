@@ -21,7 +21,7 @@ class PostIndexController extends ApiController
         $filters = $request->validated();
 
         $posts = Post::forFamily($familyId)
-            ->with('author')
+            ->with(['author', 'media'])
             ->orderByDesc('pinned')
             ->orderByDesc('created_at')
             ->cursorPaginate(20, ['*'], 'cursor', $filters['cursor'] ?? null);

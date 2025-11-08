@@ -41,6 +41,9 @@ Route::middleware(['api'])
             Route::get('memberships', [\App\Http\Controllers\Api\Family\MembershipIndexController::class, '__invoke'])
                 ->name('api.memberships.index');
 
+            Route::put('profile', [\App\Http\Controllers\Api\Profile\ProfileUpdateController::class, '__invoke'])
+                ->name('api.profile.update');
+
             // People & Relationships
             Route::get('people', [\App\Http\Controllers\Api\People\PersonIndexController::class, '__invoke'])
                 ->name('api.people.index');

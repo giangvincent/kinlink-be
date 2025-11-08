@@ -14,6 +14,8 @@ class PostStoreRequest extends ApiRequest
             'body' => ['required', 'string'],
             'visibility' => ['nullable', Rule::in(PostVisibility::values())],
             'pinned' => ['nullable', 'boolean'],
+            'attachments' => ['nullable', 'array', 'max:5'],
+            'attachments.*' => ['file', 'mimetypes:image/jpeg,image/png,image/gif,image/webp', 'max:8192'],
         ];
     }
 }

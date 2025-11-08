@@ -13,7 +13,7 @@ class PersonShowController extends ApiController
     {
         $this->authorize('view', $person);
 
-        $person->load(['primaryRelationships', 'relatedRelationships']);
+        $person->load(['primaryRelationships', 'relatedRelationships', 'closestRelative', 'media']);
 
         return $this->ok(new PersonResource($person));
     }

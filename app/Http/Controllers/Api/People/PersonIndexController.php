@@ -14,6 +14,7 @@ class PersonIndexController extends ApiController
         $data = $request->validated();
 
         $people = Person::query()
+            ->with(['closestRelative:id,display_name', 'media'])
             ->when($data['search'] ?? null, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('display_name', 'like', "%{$search}%")

@@ -7,10 +7,12 @@ use App\Enums\PersonVisibility;
 use App\Models\Concerns\BelongsToFamily;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Scout\Searchable;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Person extends Model implements HasMedia
 {
@@ -28,8 +30,11 @@ class Person extends Model implements HasMedia
         'gender',
         'birth_date',
         'death_date',
+        'is_deceased',
         'visibility',
         'meta',
+        'closest_relative_id',
+        'closest_relationship',
     ];
 
     protected function casts(): array
@@ -37,6 +42,7 @@ class Person extends Model implements HasMedia
         return [
             'birth_date' => 'date',
             'death_date' => 'date',
+            'is_deceased' => 'boolean',
             'meta' => 'array',
             'gender' => PersonGender::class,
             'visibility' => PersonVisibility::class,
@@ -56,6 +62,32 @@ class Person extends Model implements HasMedia
     public function relatedRelationships(): HasMany
     {
         return $this->hasMany(Relationship::class, 'person_id_b');
+    }
+
+    public function closestRelative(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'closest_relative_id');
+    }
+
+    public function registerMediaCollections(): void
+    {
+        $this
+            ->addMediaCollection('avatar')
+            ->singleFile();
+
+        $this
+            ->addMediaCollection('photos');
+    }
+
+    public function registerMediaConversions(Media $media = null): void
+    {
+        $this
+            ->addMediaConversion('thumb')
+            ->width(320)
+            ->height(320)
+            ->sharpen(10)
+            ->performOnCollections('avatar', 'photos')
+            ->nonQueued();
     }
 
     public function shouldBeSearchable(): bool
