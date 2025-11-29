@@ -47,4 +47,8 @@ return [
         'redirect' => env('FACEBOOK_REDIRECT_URI'),
     ],
 
+    'tinify' => [
+        'key' => env('TINIFY_API_KEY'),
+    ],
+
 ];

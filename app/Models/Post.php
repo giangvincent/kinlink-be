@@ -23,6 +23,8 @@ class Post extends Model implements HasMedia
         'family_id',
         'author_user_id',
         'body',
+        'excerpt',
+        'cover_image_path',
         'visibility',
         'pinned',
     ];

@@ -31,3 +31,6 @@ RUN composer install --no-interaction --optimize-autoloader --no-dev
 
 # Ensure correct permissions
 RUN chown -R www-data:www-data /var/www/html
+
+# Render sets $PORT. Use it, defaulting to 8000 for local runs.
+CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-8000} -t public"]
