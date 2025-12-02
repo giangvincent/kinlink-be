@@ -7,6 +7,7 @@ use App\Http\Requests\Api\Search\PostSearchRequest;
 use App\Http\Resources\PostResource;
 use App\Models\Post;
 use App\Support\FamilyContext;
+use Throwable;
 
 class PostSearchController extends ApiController
 {
@@ -19,16 +20,20 @@ class PostSearchController extends ApiController
         }
 
         $query = $request->validated()['query'];
-        $results = [];
+        $results = collect();
 
-        if (config('scout.driver')) {
-            $results = Post::search($query)
-                ->where('family_id', $familyId)
-                ->take(15)
-                ->get();
+        if (config('scout.driver') && config('scout.driver') !== 'null') {
+            try {
+                $results = Post::search($query)
+                    ->where('family_id', $familyId)
+                    ->take(15)
+                    ->get();
+            } catch (Throwable $exception) {
+                report($exception);
+            }
         }
 
-        if (! $results || $results->isEmpty()) {
+        if ($results->isEmpty()) {
             $results = Post::forFamily($familyId)
                 ->where('body', 'like', "%{$query}%")
                 ->orderByDesc('created_at')

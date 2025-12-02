@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api\Search;
 
 use App\Http\Controllers\Api\ApiController;
+use App\Enums\PersonVisibility;
 use App\Http\Requests\Api\Search\PeopleSearchRequest;
 use App\Http\Resources\PersonResource;
 use App\Models\Person;
 use App\Support\FamilyContext;
+use Throwable;
 
 class PeopleSearchController extends ApiController
 {
@@ -19,17 +21,22 @@ class PeopleSearchController extends ApiController
         }
 
         $query = $request->validated()['query'];
-        $results = [];
+        $results = collect();
 
-        if (config('scout.driver')) {
-            $results = Person::search($query)
-                ->where('family_id', $familyId)
-                ->take(15)
-                ->get();
+        if (config('scout.driver') && config('scout.driver') !== 'null') {
+            try {
+                $results = Person::search($query)
+                    ->where('family_id', $familyId)
+                    ->take(15)
+                    ->get();
+            } catch (Throwable $exception) {
+                report($exception);
+            }
         }
 
-        if (! $results || $results->isEmpty()) {
+        if ($results->isEmpty()) {
             $results = Person::forFamily($familyId)
+                ->where('visibility', '!=', PersonVisibility::PRIVATE->value)
                 ->where(function ($q) use ($query) {
                     $q->where('display_name', 'like', "%{$query}%")
                         ->orWhere('surname', 'like', "%{$query}%");

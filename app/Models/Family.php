@@ -10,10 +10,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Scout\Searchable;
 
 class Family extends Model
 {
     use HasFactory;
+    use Searchable;
 
     protected $fillable = [
         'name',
@@ -83,5 +85,21 @@ class Family extends Model
     public function exports(): HasMany
     {
         return $this->hasMany(Export::class);
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id' => $this->getKey(),
+            'name' => $this->name,
+            'slug' => $this->slug,
+            'locale' => $this->locale,
+            'owner_user_id' => $this->owner_user_id,
+        ];
+    }
+
+    public function shouldBeSearchable(): bool
+    {
+        return filled($this->name);
     }
 }

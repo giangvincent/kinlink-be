@@ -99,6 +99,8 @@ Route::middleware(['api'])
                 ->name('api.media.destroy');
 
             // Search
+            Route::get('search/families', [\App\Http\Controllers\Api\Search\FamilySearchController::class, '__invoke'])
+                ->name('api.search.families');
             Route::get('search/people', [\App\Http\Controllers\Api\Search\PeopleSearchController::class, '__invoke'])
                 ->name('api.search.people');
             Route::get('search/posts', [\App\Http\Controllers\Api\Search\PostSearchController::class, '__invoke'])
